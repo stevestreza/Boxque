@@ -1,6 +1,9 @@
-var util = require('util');
-var fs   = require('fs');
-var path = require('path');
+var util   = require('util');
+var fs     = require('fs');
+var path   = require('path');
+var boxcar = require('boxcar');
+
+var resque = require('coffee-resque');
 
 var tryPath = function(realPath, cb){
 	fs.readFile("" + realPath, function(err, data){
@@ -38,12 +41,58 @@ var tryPaths = function(pathArray, cb){
 	tryNext();
 };
 
+exports.data   = null;
+exports.resque = null;
+exports.boxcar = null;
+
 exports.get = function(cb){
+	if(exports.data){
+		cb(exports.data);
+		return;
+	}
+	
 	tryPaths(["./config.json", "~/.boxque.json", "/etc/boxque.json"], function(success, data){
 		if(!success){
 			data = {};
 		}
 		
+		exports.data = data;
+		
 		cb(data);
+	});
+};
+
+exports.resqueServer = function(cb){
+	if(exports.resque){
+		cb(exports.resque);
+		return;
+	}
+	
+	exports.get(function(data){
+		if(data.resque){
+			var server = resque.connect(data.resque);
+			exports.resque = server;
+			cb(server);
+		}else{
+			cb(null);
+		}
+	});
+};
+
+exports.boxcarProvider = function(cb){
+	if(exports.boxcar){
+		cb(exports.boxcar);
+		return;
+	}
+	
+	exports.get(function(data){
+		if(data.boxcar){
+			var provider = new boxcar.Provider(data.boxcar.apiKey, data.boxcar.apiSecret);
+			provider.email = data.boxcar.email;
+			exports.boxcar = provider;
+			cb(provider);
+		}else{
+			cb(null);
+		}
 	});
 };

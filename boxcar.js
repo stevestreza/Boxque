@@ -1,11 +1,13 @@
 var util = require('util');
-var resque = require('coffee-resque');
+var configLoader = require('./config');
 
-var config = require('./config');
-
-config.get(function(data){
-	util.puts("Got configuration: " + util.inspect(data));
-
-	var msg = process.argv[2];
-	util.puts("Notification: " + msg);
+configLoader.resqueServer(function(resque){
+	if(resque){
+		var message = process.argv[2];
+		resque.enqueue("boxcar", "sendNotification", [message]);
+//		process.exit();
+	}else{
+		util.puts("Error: No Resque server found in configuration, aborting");
+		process.exit(1);
+	}
 });
