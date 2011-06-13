@@ -1,0 +1,12 @@
+#!/usr/bin/env node
+;
+
+var util = require('util');
+var boxcar = require('../lib/boxcar');
+
+var message = process.argv[2];
+boxcar.sendNotification(message, function(success){
+	if(!success){
+		util.puts("Could not enqueue notification");
+	}
+});

@@ -1,0 +1,8 @@
+#!/usr/bin/env node
+;
+
+var util = require('util');
+var worker = require('../lib/worker');
+worker.beginWorker(function(processor){
+	util.puts("Now processing queue");
+});
